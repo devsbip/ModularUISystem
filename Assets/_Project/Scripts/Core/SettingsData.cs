@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [System.Serializable]
-public class SettingsData : MonoBehaviour
+public class SettingsData
 {
     // Audio Settings
     public float MasterVolume = .8f;

@@ -13,6 +13,7 @@ public class SettingsManager : MonoBehaviour
     private const string SETTINGS_FILE_NAME = "user_settings.json";
 
     public SettingsData Data { get; private set; }
+    public Resolution[] AvailableResolutions { get; private set; }
 
     void Awake()
     {
@@ -23,12 +24,20 @@ public class SettingsManager : MonoBehaviour
         }
         Instance = this;
 
+        AvailableResolutions = Screen.resolutions;
+
         LoadAndApplySettings();
     }
 
     private void LoadAndApplySettings()
     {
         Data = SaveSystem.Load<SettingsData>(SETTINGS_FILE_NAME);
+
+        if (Data.ResolutionIndex >= AvailableResolutions.Length)
+        {
+            Data.ResolutionIndex = AvailableResolutions.Length - 1;
+        }
+
         ApplyAllSettings();
     }
 
@@ -40,8 +49,9 @@ public class SettingsManager : MonoBehaviour
     public void ApplyAllSettings()
     {
         // Video Logic
-        Screen.fullScreen = Data.IsFullscreen;
-        QualitySettings.SetQualityLevel(Data.QualityIndex);
+        SetQuality(Data.QualityIndex);
+        SetFullscreen(Data.IsFullscreen);
+        SetResolution(Data.ResolutionIndex);
 
         // Audio Logic
         SetMasterVolume(Data.MasterVolume);
@@ -49,6 +59,7 @@ public class SettingsManager : MonoBehaviour
         SetSFXVolume(Data.SFXVolume);
     }
 
+    // Audio Methods
     private float LinearToDecibel(float linearValue)
     {
         float clampedValue = Mathf.Clamp(linearValue, 0.0001f, 1f);
@@ -80,5 +91,32 @@ public class SettingsManager : MonoBehaviour
     {
         Data.SFXVolume = volume;
         _mainAudioMixer.SetFloat("SFXVolume", LinearToDecibel(volume));
+    }
+
+    // Video Methods
+
+    /// <summary>
+    /// Applies the selected graphics quality level.
+    /// </summary>
+    public void SetQuality(int qualityIndex)
+    {
+        Data.QualityIndex = qualityIndex;
+        QualitySettings.SetQualityLevel(qualityIndex);
+    }
+
+    /// <summary>
+    /// Toggles fullscreen mode.
+    /// </summary>
+    public void SetFullscreen(bool isFullscreen)
+    {
+        Data.IsFullscreen = isFullscreen;
+        Screen.fullScreen = isFullscreen;
+    }
+
+    public void SetResolution(int resolutionIndex)
+    {
+        Data.ResolutionIndex = resolutionIndex;
+        Resolution res = AvailableResolutions[resolutionIndex];
+        Screen.SetResolution(res.width, res.height, Data.IsFullscreen);
     }
 }

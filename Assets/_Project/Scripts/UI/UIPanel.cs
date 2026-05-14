@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 using DG.Tweening;
 
 [RequireComponent(typeof(CanvasGroup))]
@@ -7,6 +8,10 @@ public abstract class UIPanel : MonoBehaviour
     [Header("Anim Settings")]
     [SerializeField] private float _fadeDuration = .3f;
     [SerializeField] private Ease _easeType = Ease.OutQuad;
+
+    [Header("Gamepad/Keyboard Nav")]
+    [SerializeField] protected GameObject _firstSelectedElement;
+
     protected CanvasGroup _canvasGroup;
 
     protected virtual void Awake()
@@ -29,6 +34,8 @@ public abstract class UIPanel : MonoBehaviour
         _canvasGroup.DOFade(1f, _fadeDuration)
                     .SetEase(_easeType)
                     .SetUpdate(true);
+        
+        SetFirstSelected();
     }
 
     /// <summary>
@@ -56,5 +63,17 @@ public abstract class UIPanel : MonoBehaviour
         _canvasGroup.interactable = false;
         _canvasGroup.blocksRaycasts = false;
         gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Clears the current selection and highlights the designated first element.
+    /// </summary>
+    private void SetFirstSelected()
+    {
+        if (_firstSelectedElement == null) return;
+
+        // Clear current selection first to force the UI to refresh its visual state
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(_firstSelectedElement);
     }
 }
